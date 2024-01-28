@@ -1,75 +1,22 @@
-class Cicle {
-    
-    constructor (nom, categoria,numAlumnes, abreviatura, dataCreacio){
-        this.nom = nom;
-        this.categoria = categoria;
-        this.numAlumnes = numAlumnes;
-        this.abreviatura = abreviatura;
-        this.dataCreacio = dataCreacio;
-        this.numEdicions = 0;
-        this.moduls =[];
-        
-    }
 
-    get numEdicions (){
-        return this.numEdicions;
-    }
-    set numEdicions(value){
-        this.numEdicions = ++value;
-    }
-
-    toString(){
-    
-    let text = `Nom del cicle: ${this.nom} 
-                Categoria: ${this.categoria} 
-                Número d'alumnes: ${this.numAlumnes}
-                Abreviatura del cicle: ${this.abreviatura}
-                Data de creació: ${this.dataCreacio}
-                Numero d'edicions ${numEdicions}
-                Moduls:
-                `;
-                this.moduls.forEach(modul => {
-                    text += `  - Nom del mòdul: ${modul.nom}
-                    Número del mòdul: ${modul.num}
-                    Hores del mòdul: ${modul.hores}
-                  `;
-                });
-    
-     return text;
-    }
-
-    
-    
-}
-
-class Modul{
-    constructor (cicle,modul_nom,modul_num,modul_hores){
-        
-        this.cicle = cicle;
-        this.modul_nom = modul_nom;
-        this.modul_num = modul_num;
-        this.modul_hores = modul_hores;
-    }
-
-    toString(){
-        
-        let text = `MP${this.modul_num}.${this.modul_nom}(${this.modul_hores}h)`;
-        return text;
-    }
-}
-
+// IMPORTS
+import {Cicle} from "./Cicle.js";
+import {Modul} from "./Modul.js";
 
 let llistatCicles = [];
+
+document.getElementById("btnAfegirCicle").addEventListener("click", afegirCicle);
+document.getElementById("btnAfegirModul").addEventListener("click", afegirModul);
 
 function afegirCicle(){
     let nom = document.getElementById("cicle_nom").value;
     let categoria = document.getElementById("cicle_categoria").value;
     let numAlumnes = document.getElementById("cicle_alumnes").value;
     let abreviatura = document.getElementById("cicle_abr").value; 
-    let numEdicions = 0;
-    let dataCreacio = new Date();
+  
 
-    let cicle = {nom: nom, categoria: categoria, numAlumnes: numAlumnes, abreviatura: abreviatura, dataCreacio: dataCreacio, moduls: [], numEdicions: numEdicions}
+    let cicle = new Cicle(nom,categoria,numAlumnes,abreviatura); //Creem instància de Cicle 
+
     console.log(cicle);
 
     if(document.getElementById("editCicle").value === "-1"){
@@ -82,9 +29,15 @@ function afegirCicle(){
         llistatCicles[i].categoria = categoria;
         llistatCicles[i].abreviatura = abreviatura;
         llistatCicles[i].numAlumnes = numAlumnes;
-       
+        llistatCicles[i].setNumEdicions(); //cridem setters
+        llistatCicles[i].setDataCreacio();
 
-    
+        console.log(`
+        Edicions: ${llistatCicles[i].numEdicions}
+        Última edició: ${llistatCicles[i].dataCreacio}`
+        
+        );
+        
     }
     
     //Actualitzem el selector
@@ -107,7 +60,8 @@ function afegirModul(){ //afegeix modul al Cicle
     let modul_num = document.getElementById("modul_num").value;
     let modul_hores = document.getElementById("modul_hores").value;
 
-    let modul = {cicle: cicle, nom: modul_nom, num: modul_num, hores: modul_hores}
+    let modul = new Modul(cicle, modul_nom, modul_num, modul_hores);
+
     console.log(modul);
 
     let cicleSeleccionat = llistatCicles[cicle];
@@ -133,15 +87,20 @@ function printLlistat (llistat){
                     <h6 class="text-gray-700">${element.categoria}</h6>
                     <p class="font-normal text-gray-700">Num d'alumnes: ${element.numAlumnes}</p>
 
-                    <button type="button" onClick="removeCicle(${index})" class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2">Eliminar</button>
-                    <button type="button" onClick="editCicle(${index})" class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2">Editar</button>
-                    <button type="button" onClick="calculHores(${index})" class="focus:outline-none text-white bg-yellow-400 hover:bg-yellow-500 focus:ring-4 focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2">Càlcul hores</button>
-
+                    <button type="button" id="btnRemoveCicle_${index}" class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2">Eliminar</button>
+                    <button type="button" id="btnEditCicle_${index}" class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2">Editar</button>
+                    <button type="button" id="btnCalculHores_${index}" class="focus:outline-none text-white bg-yellow-400 hover:bg-yellow-500 focus:ring-4 focus:ring-yellow-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2">Càlcul hores</button>
 
                 </div>`;
     });
 
     document.getElementById("llistat").innerHTML=str;
+
+    llistat.forEach(function(llista,index){
+        document.getElementById(`btnRemoveCicle_${index}`).addEventListener("click",function(){removeCicle(index)});
+        document.getElementById(`btnEditCicle_${index}`).addEventListener("click", function(){editCicle(index)});
+        document.getElementById(`btnCalculHores_${index}`).addEventListener("click", function(){calculHores(index)});
+    });
 }
 
 //Funció per actualitzar el selector de cicles cada vegada que afegim un cicle
